@@ -1,0 +1,23 @@
+name = "ethusdt-signal-bot"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ethusdt-bot-db"
+database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # replace with actual ID
+
+[triggers]
+crons = ["* * * * *"]  # run every minute
+
+[vars]
+SYMBOL = "ETHUSDT"
+TIMEFRAME = "15m"
+CANDLE_LIMIT = 10          # fetch more to ensure we get enough closed
+
+[env.production]
+vars = { SYMBOL = "ETHUSDT", TIMEFRAME = "15m", CANDLE_LIMIT = 10 }
+
+# Secrets (set via wrangler secret put)
+# MASTER_PASSWORD   – used for admin credential reset
+# JWT_SECRET        – if using JWT (we use random tokens, so not needed)
