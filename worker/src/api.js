@@ -21,7 +21,8 @@ export async function handleStatus(env, request) {
         });
     } catch (err) {
         console.error('handleStatus error:', err);
-        return new Response(JSON.stringify({ error: err.message, stack: err.stack }), {
+        // Return a simple error message without stack to avoid any issues
+        return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
@@ -36,7 +37,7 @@ export async function handleSignals(env, request) {
             headers: { 'Content-Type': 'application/json' }
         });
     } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), {
+        return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
@@ -50,7 +51,7 @@ export async function handleHistory(env, request) {
             headers: { 'Content-Type': 'application/json' }
         });
     } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), {
+        return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
@@ -70,7 +71,7 @@ export async function handleCandles(env, request) {
             headers: { 'Content-Type': 'application/json' }
         });
     } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), {
+        return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
@@ -84,7 +85,7 @@ export async function handleResetHistory(env, request) {
             headers: { 'Content-Type': 'application/json' }
         });
     } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), {
+        return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
