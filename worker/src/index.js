@@ -11,6 +11,35 @@ export default {
 
             console.log(`Request: ${request.method} ${path}`);
 
+            // ---- Debug endpoint (test D1 + env vars) ----
+            if (path === '/debug') {
+                try {
+                    const d1Test = await env.DB.prepare('SELECT 1 as test').first();
+                    return new Response(JSON.stringify({
+                        status: 'ok',
+                        d1: 'connected',
+                        d1Test: d1Test,
+                        envVars: {
+                            SYMBOL: env.SYMBOL || 'not set',
+                            TIMEFRAME: env.TIMEFRAME || 'not set',
+                            CANDLE_LIMIT: env.CANDLE_LIMIT || 'not set'
+                        }
+                    }), {
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                } catch (err) {
+                    return new Response(JSON.stringify({
+                        status: 'error',
+                        error: err.message,
+                        stack: err.stack
+                    }), {
+                        status: 500,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+            }
+
+            // ---- CORS headers ----
             const corsHeaders = {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -20,6 +49,7 @@ export default {
                 return new Response(null, { headers: corsHeaders });
             }
 
+            // ---- Route handling ----
             let response;
             switch (path) {
                 case '/api/status':
@@ -41,6 +71,7 @@ export default {
                     response = new Response(JSON.stringify({ error: 'Not found' }), { status: 404 });
             }
 
+            // ---- Add CORS and ensure JSON ----
             const newHeaders = new Headers(response.headers);
             for (const [key, value] of Object.entries(corsHeaders)) {
                 newHeaders.set(key, value);
@@ -56,9 +87,11 @@ export default {
 
         } catch (err) {
             console.error('Unhandled error in fetch:', err);
+            // Always return a JSON error
             return new Response(JSON.stringify({
                 error: 'Internal server error',
-                details: err.message
+                details: err.message,
+                stack: err.stack
             }), {
                 status: 500,
                 headers: {
@@ -80,6 +113,7 @@ export default {
     }
 };
 
+// ---- processNewCandle function (with defaults) ----
 async function processNewCandle(env) {
     const symbol = env.SYMBOL || 'ETHUSDT';
     const timeframe = env.TIMEFRAME || '15m';
@@ -107,7 +141,6 @@ async function processNewCandle(env) {
 
     let currentState = state;
     for (const candle of newCandles) {
-        // Evaluate pending trade
         if (currentState.pending_trade === 1 && currentState.last_prediction_direction) {
             const predictedColor = currentState.last_prediction_direction === 'BUY' ? 'green' : 'red';
             const actualColor = candle.color;
@@ -135,7 +168,7 @@ async function processNewCandle(env) {
             currentState.pending_signal_id = null;
         }
 
-        // Generate new signal using the last 6 closed candles
+        // Generate new signal
         const currentCandles = allCandles.slice(-6);
         if (currentCandles.length >= 6) {
             const c1 = currentCandles[0].color;
