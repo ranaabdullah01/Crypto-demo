@@ -21,7 +21,7 @@ export async function handleStatus(env, request) {
         });
     } catch (err) {
         console.error('handleStatus error:', err);
-        return new Response(JSON.stringify({ error: err.message }), {
+        return new Response(JSON.stringify({ error: err.message, stack: err.stack }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
