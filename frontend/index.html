@@ -3,517 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ETHUSDT · 15m Bot · Login</title>
+    <title>ETHUSDT · 15m Bot</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        body {
-            background: #0a0a0a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        #loginOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 10, 10, 0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            backdrop-filter: blur(8px);
-        }
+        /* ---- Same styles as original (kept intact) ---- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+        body { background: #0a0a0a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,10,10,0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(8px); }
         #loginOverlay.hidden { display: none; }
-        .login-box {
-            background: #141416;
-            border-radius: 32px;
-            padding: 40px 44px;
-            max-width: 420px;
-            width: 100%;
-            border: 1px solid #2a2a2e;
-            box-shadow: 0 16px 48px rgba(0,0,0,0.9);
-        }
-        .login-box h2 {
-            color: #e8e8e8;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-        .login-box .subtitle {
-            color: #888892;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 28px;
-        }
+        .login-box { background: #141416; border-radius: 32px; padding: 40px 44px; max-width: 420px; width: 100%; border: 1px solid #2a2a2e; box-shadow: 0 16px 48px rgba(0,0,0,0.9); }
+        .login-box h2 { color: #e8e8e8; font-size: 28px; font-weight: 700; margin-bottom: 8px; text-align: center; }
+        .login-box .subtitle { color: #888892; font-size: 14px; text-align: center; margin-bottom: 28px; }
         .login-box .subtitle i { color: #f0b90b; }
-        .login-box label {
-            color: #b0b0b8;
-            font-size: 14px;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 6px;
-        }
-        .login-box input {
-            width: 100%;
-            padding: 12px 16px;
-            background: #0d0d0f;
-            border: 1px solid #2a2a2e;
-            border-radius: 12px;
-            color: #e8e8e8;
-            font-size: 16px;
-            outline: none;
-            transition: 0.2s;
-            margin-bottom: 16px;
-        }
+        .login-box label { color: #b0b0b8; font-size: 14px; font-weight: 600; display: block; margin-bottom: 6px; }
+        .login-box input { width: 100%; padding: 12px 16px; background: #0d0d0f; border: 1px solid #2a2a2e; border-radius: 12px; color: #e8e8e8; font-size: 16px; outline: none; transition: 0.2s; margin-bottom: 16px; }
         .login-box input:focus { border-color: #f0b90b; }
-        .login-box .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: #f0b90b;
-            border: none;
-            border-radius: 12px;
-            color: #0a0a0a;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-top: 8px;
-        }
+        .login-box .btn-login { width: 100%; padding: 14px; background: #f0b90b; border: none; border-radius: 12px; color: #0a0a0a; font-size: 18px; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 8px; }
         .login-box .btn-login:hover { background: #d4a40a; }
-        .login-box .forgot-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 14px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .login-box .forgot-row a {
-            color: #888892;
-            font-size: 13px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: 0.2s;
-        }
+        .login-box .forgot-row { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 8px; }
+        .login-box .forgot-row a { color: #888892; font-size: 13px; cursor: pointer; text-decoration: none; transition: 0.2s; }
         .login-box .forgot-row a:hover { color: #f0b90b; }
-        .login-box .error-msg {
-            color: #f6465d;
-            font-size: 13px;
-            margin-top: 10px;
-            text-align: center;
-            min-height: 20px;
-        }
-        .forgot-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 10, 10, 0.9);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(4px);
-        }
+        .login-box .error-msg { color: #f6465d; font-size: 13px; margin-top: 10px; text-align: center; min-height: 20px; }
+        .forgot-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,10,10,0.9); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .forgot-modal.active { display: flex; }
-        .forgot-box {
-            background: #141416;
-            border-radius: 32px;
-            padding: 36px 40px;
-            max-width: 400px;
-            width: 100%;
-            border: 1px solid #2a2a2e;
-            box-shadow: 0 16px 48px rgba(0,0,0,0.9);
-        }
-        .forgot-box h3 {
-            color: #e8e8e8;
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-        .forgot-box .admin-auth-text {
-            color: #f0b90b;
-            font-size: 18px;
-            font-weight: 900;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-        }
-        .forgot-box .admin-auth-text i {
-            margin-right: 8px;
-        }
-        .forgot-box label {
-            color: #b0b0b8;
-            font-size: 14px;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 6px;
-        }
-        .forgot-box input {
-            width: 100%;
-            padding: 12px 16px;
-            background: #0d0d0f;
-            border: 1px solid #2a2a2e;
-            border-radius: 12px;
-            color: #e8e8e8;
-            font-size: 16px;
-            outline: none;
-            transition: 0.2s;
-            margin-bottom: 16px;
-        }
+        .forgot-box { background: #141416; border-radius: 32px; padding: 36px 40px; max-width: 400px; width: 100%; border: 1px solid #2a2a2e; box-shadow: 0 16px 48px rgba(0,0,0,0.9); }
+        .forgot-box h3 { color: #e8e8e8; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+        .forgot-box .admin-auth-text { color: #f0b90b; font-size: 18px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .forgot-box .admin-auth-text i { margin-right: 8px; }
+        .forgot-box label { color: #b0b0b8; font-size: 14px; font-weight: 600; display: block; margin-bottom: 6px; }
+        .forgot-box input { width: 100%; padding: 12px 16px; background: #0d0d0f; border: 1px solid #2a2a2e; border-radius: 12px; color: #e8e8e8; font-size: 16px; outline: none; transition: 0.2s; margin-bottom: 16px; }
         .forgot-box input:focus { border-color: #f0b90b; }
-        .forgot-box .btn-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .forgot-box .btn-row button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .forgot-box .btn-row .btn-confirm {
-            background: #f0b90b;
-            color: #0a0a0a;
-        }
+        .forgot-box .btn-row { display: flex; gap: 12px; margin-top: 8px; }
+        .forgot-box .btn-row button { flex: 1; padding: 12px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .forgot-box .btn-row .btn-confirm { background: #f0b90b; color: #0a0a0a; }
         .forgot-box .btn-row .btn-confirm:hover { background: #d4a40a; }
-        .forgot-box .btn-row .btn-cancel {
-            background: #222226;
-            color: #888892;
-        }
-        .forgot-box .btn-row .btn-cancel:hover {
-            background: #333337;
-            color: #e8e8e8;
-        }
-        .forgot-box .forgot-error {
-            color: #f6465d;
-            font-size: 13px;
-            margin-top: 10px;
-            text-align: center;
-            min-height: 20px;
-        }
-        .forgot-box .forgot-success {
-            color: #0ecb81;
-            font-size: 13px;
-            margin-top: 10px;
-            text-align: center;
-            min-height: 20px;
-        }
-        .binance-card {
-            max-width: 1100px;
-            width: 100%;
-            background: #141416;
-            border-radius: 40px;
-            padding: 40px 48px 48px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
-            border: 1px solid #2a2a2e;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #2a2a2e;
-            padding-bottom: 24px;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
-        }
-        .pair {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .pair h1 {
-            font-size: 34px;
-            font-weight: 700;
-            color: #e8e8e8;
-        }
+        .forgot-box .btn-row .btn-cancel { background: #222226; color: #888892; }
+        .forgot-box .btn-row .btn-cancel:hover { background: #333337; color: #e8e8e8; }
+        .forgot-box .forgot-error { color: #f6465d; font-size: 13px; margin-top: 10px; text-align: center; min-height: 20px; }
+        .forgot-box .forgot-success { color: #0ecb81; font-size: 13px; margin-top: 10px; text-align: center; min-height: 20px; }
+        .binance-card { max-width: 1100px; width: 100%; background: #141416; border-radius: 40px; padding: 40px 48px 48px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); border: 1px solid #2a2a2e; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2a2a2e; padding-bottom: 24px; margin-bottom: 28px; flex-wrap: wrap; }
+        .pair { display: flex; align-items: center; gap: 14px; }
+        .pair h1 { font-size: 34px; font-weight: 700; color: #e8e8e8; }
         .pair i { color: #f0b90b; font-size: 30px; }
-        .badge {
-            background: #222226;
-            color: #a0a0a8;
-            font-size: 22px;
-            font-weight: 700;
-            padding: 8px 22px;
-            border-radius: 40px;
-            border: 1px solid #333337;
-        }
-        .price-box {
-            background: #0d0d0f;
-            padding: 14px 28px;
-            border-radius: 40px;
-            border: 1px solid #2a2a2e;
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-        .price-live {
-            font-size: 32px;
-            font-weight: 700;
-            color: #e8e8e8;
-        }
+        .badge { background: #222226; color: #a0a0a8; font-size: 22px; font-weight: 700; padding: 8px 22px; border-radius: 40px; border: 1px solid #333337; }
+        .price-box { background: #0d0d0f; padding: 14px 28px; border-radius: 40px; border: 1px solid #2a2a2e; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+        .price-live { font-size: 32px; font-weight: 700; color: #e8e8e8; }
         .price-live i { color: #f0b90b; font-size: 22px; margin-right: 8px; }
-        .timeframe-badge {
-            background: #141416;
-            color: #a0a0a8;
-            font-size: 16px;
-            padding: 6px 18px;
-            border-radius: 30px;
-            border: 1px solid #333337;
-            font-weight: 600;
-        }
-        .signal-box {
-            background: #0d0d0f;
-            border-radius: 28px;
-            padding: 28px 32px;
-            margin: 24px 0 28px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            border: 1px solid #2a2a2e;
-        }
-        .signal-label {
-            color: #888892;
-            font-size: 24px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 800;
-        }
+        .timeframe-badge { background: #141416; color: #a0a0a8; font-size: 16px; padding: 6px 18px; border-radius: 30px; border: 1px solid #333337; font-weight: 600; }
+        .signal-box { background: #0d0d0f; border-radius: 28px; padding: 28px 32px; margin: 24px 0 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border: 1px solid #2a2a2e; }
+        .signal-label { color: #888892; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
         .signal-value { font-size: 40px; font-weight: 700; }
         .signal-green { color: #0ecb81; }
         .signal-red { color: #f6465d; }
         .signal-neutral { color: #888892; }
-        .candle-grid {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            margin: 16px 0 24px;
-            flex-wrap: wrap;
-        }
-        .candle-item {
-            background: #141416;
-            border: 1px solid #2a2a2e;
-            border-radius: 18px;
-            padding: 14px 12px;
-            flex: 1 0 70px;
-            text-align: center;
-        }
-        .candle-item .time {
-            font-size: 16px;
-            color: #6a6a72;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .candle-item .ohlc {
-            font-size: 20px;
-            font-weight: 700;
-            margin-top: 8px;
-            text-transform: uppercase;
-        }
-        .candle-item .open-text {
-            font-size: 15px;
-            font-weight: 700;
-            color: #5a5a62;
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
+        .candle-grid { display: flex; justify-content: space-between; gap: 12px; margin: 16px 0 24px; flex-wrap: wrap; }
+        .candle-item { background: #141416; border: 1px solid #2a2a2e; border-radius: 18px; padding: 14px 12px; flex: 1 0 70px; text-align: center; }
+        .candle-item .time { font-size: 16px; color: #6a6a72; font-weight: 700; text-transform: uppercase; }
+        .candle-item .ohlc { font-size: 20px; font-weight: 700; margin-top: 8px; text-transform: uppercase; }
+        .candle-item .open-text { font-size: 15px; font-weight: 700; color: #5a5a62; text-transform: uppercase; margin-top: 4px; }
         .green { color: #0ecb81; }
         .red { color: #f6465d; }
         .win-badge { background: #0ecb81; color: #0a0a0a; font-weight: 700; padding: 4px 14px; border-radius: 30px; font-size: 14px; }
         .loss-badge { background: #f6465d; color: #fff; font-weight: 700; padding: 4px 14px; border-radius: 30px; font-size: 14px; }
-        .history-section {
-            margin-top: 32px;
-            border-top: 1px solid #2a2a2e;
-            padding-top: 26px;
-        }
-        .history-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #b0b0b8;
-            font-size: 20px;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .history-header .history-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .history-section { margin-top: 32px; border-top: 1px solid #2a2a2e; padding-top: 26px; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; color: #b0b0b8; font-size: 20px; font-weight: 700; text-transform: uppercase; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+        .history-header .history-title { display: flex; align-items: center; gap: 12px; }
         .history-header .history-title i { color: #f0b90b; }
-        .history-header .win-loss-display {
-            font-size: 20px;
-            font-weight: 700;
-            color: #b0b0b8;
-        }
+        .history-header .win-loss-display { font-size: 20px; font-weight: 700; color: #b0b0b8; }
         .history-header .win-loss-display .win-count { color: #0ecb81; }
         .history-header .win-loss-display .loss-count { color: #f6465d; }
-        .history-header .strategy-display {
-            font-size: 18px;
-            font-weight: 700;
-            color: #f0b90b;
-            background: #0d0d0f;
-            padding: 6px 20px;
-            border-radius: 30px;
-            border: 1px solid #2a2a2e;
-            text-transform: uppercase;
-        }
-        .history-list {
-            max-height: 200px;
-            overflow-y: auto;
-            padding-right: 6px;
-        }
+        .history-header .strategy-display { font-size: 18px; font-weight: 700; color: #f0b90b; background: #0d0d0f; padding: 6px 20px; border-radius: 30px; border: 1px solid #2a2a2e; text-transform: uppercase; }
+        .history-list { max-height: 200px; overflow-y: auto; padding-right: 6px; }
         .history-list::-webkit-scrollbar { width: 5px; }
         .history-list::-webkit-scrollbar-track { background: #141416; }
         .history-list::-webkit-scrollbar-thumb { background: #333337; border-radius: 10px; }
-        .history-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 20px;
-            background: #0d0d0f;
-            border-radius: 16px;
-            margin-bottom: 10px;
-            border-left: 4px solid #2a2a2e;
-            font-size: 17px;
-            color: #e0e0e0;
-            align-items: center;
-        }
+        .history-row { display: flex; justify-content: space-between; padding: 12px 20px; background: #0d0d0f; border-radius: 16px; margin-bottom: 10px; border-left: 4px solid #2a2a2e; font-size: 17px; color: #e0e0e0; align-items: center; }
         .history-row .h-time { color: #6a6a72; font-size: 15px; font-weight: 600; }
         .history-row .h-result { font-weight: 700; }
         .history-row .h-price { font-size: 16px; color: #888892; font-weight: 600; }
-        .btn-reset {
-            background: #222226;
-            border: none;
-            color: #888892;
-            padding: 10px 24px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 18px;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
-        }
-        .btn-reset:hover {
-            background: #333337;
-            color: #e8e8e8;
-        }
-        .footer-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 16px;
-            color: #5a5a62;
-            margin-top: 22px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .countdown-box {
-            background: #0d0d0f;
-            padding: 10px 24px;
-            border-radius: 40px;
-            border: 1px solid #2a2a2e;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 700;
-            font-size: 18px;
-            text-transform: uppercase;
-        }
+        .btn-reset { background: #222226; border: none; color: #888892; padding: 10px 24px; border-radius: 30px; font-weight: 700; font-size: 18px; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
+        .btn-reset:hover { background: #333337; color: #e8e8e8; }
+        .footer-meta { display: flex; justify-content: space-between; align-items: center; font-size: 16px; color: #5a5a62; margin-top: 22px; flex-wrap: wrap; gap: 12px; }
+        .countdown-box { background: #0d0d0f; padding: 10px 24px; border-radius: 40px; border: 1px solid #2a2a2e; display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 18px; text-transform: uppercase; }
         .countdown-box i { color: #f0b90b; }
-        #countdownTimer {
-            color: #e0e0e0;
-            font-size: 20px;
-            font-variant-numeric: tabular-nums;
-        }
-        .live-clock {
-            background: #0d0d0f;
-            padding: 10px 24px;
-            border-radius: 40px;
-            border: 1px solid #2a2a2e;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 600;
-            color: #e0e0e0;
-            font-size: 20px;
-            font-variant-numeric: tabular-nums;
-        }
+        #countdownTimer { color: #e0e0e0; font-size: 20px; font-variant-numeric: tabular-nums; }
+        .live-clock { background: #0d0d0f; padding: 10px 24px; border-radius: 40px; border: 1px solid #2a2a2e; display: flex; align-items: center; gap: 12px; font-weight: 600; color: #e0e0e0; font-size: 20px; font-variant-numeric: tabular-nums; }
         .live-clock i { color: #f0b90b; }
-        .label-big-cap {
-            font-size: 20px;
-            font-weight: 700;
-            color: #b0b0b8;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
+        .label-big-cap { font-size: 20px; font-weight: 700; color: #b0b0b8; letter-spacing: 0.5px; text-transform: uppercase; }
         .label-big-cap i { margin-right: 8px; }
-        .label-sub {
-            font-size: 20px;
-            font-weight: 700;
-            color: #888892;
-            text-transform: uppercase;
-        }
-        .user-info {
-            color: #888892;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
+        .label-sub { font-size: 20px; font-weight: 700; color: #888892; text-transform: uppercase; }
+        .user-info { color: #888892; font-size: 15px; display: flex; align-items: center; gap: 14px; }
         .user-info i { color: #f0b90b; }
-        .btn-logout {
-            background: #222226;
-            border: none;
-            color: #888892;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-weight: 500;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-logout:hover {
-            background: #333337;
-            color: #e8e8e8;
-        }
-        .tab-status {
-            background: #0d0d0f;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 600;
-            border: 1px solid #2a2a2e;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .tab-status .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
+        .btn-logout { background: #222226; border: none; color: #888892; padding: 6px 16px; border-radius: 30px; font-weight: 500; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .btn-logout:hover { background: #333337; color: #e8e8e8; }
+        .tab-status { background: #0d0d0f; padding: 6px 16px; border-radius: 30px; font-size: 14px; font-weight: 600; border: 1px solid #2a2a2e; display: inline-flex; align-items: center; gap: 8px; }
+        .tab-status .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
         .tab-status .status-dot.active { background: #0ecb81; }
         .tab-status .status-dot.inactive { background: #f6465d; }
     </style>
@@ -545,7 +130,6 @@
 <div class="forgot-modal" id="forgotModal">
     <div class="forgot-box">
         <h3><i class="fas fa-key" style="color:#f0b90b;"></i> Reset Credentials</h3>
-        
         <p class="admin-auth-text">
             <i class="fas fa-shield-alt"></i> THIS ACTION REQUIRES ADMINISTRATOR AUTHORIZATION.
         </p>
@@ -631,11 +215,14 @@
 
 <script>
     (function() {
-        // ----- LOGIN SYSTEM -----
-        const MASTER_PASSWORD = 'MAHSAN300';
-        let currentUsername = 'admin';
-        let currentPassword = 'admin123';
+        // ---- API BASE URL (change if needed) ----
+        const API_BASE = ''; // relative to origin
 
+        // ---- Authentication state ----
+        let authToken = null;
+        let currentUsername = '';
+
+        // ---- UI Elements ----
         const loginOverlay = document.getElementById('loginOverlay');
         const mainApp = document.getElementById('mainApp');
         const loginUsername = document.getElementById('loginUsername');
@@ -655,103 +242,277 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const statusDot = document.getElementById('statusDot');
         const statusText = document.getElementById('statusText');
+        const livePriceEl = document.getElementById('livePrice');
+        const signalDisplay = document.getElementById('signalDisplay');
+        const candleGrid = document.getElementById('candleGrid');
+        const historyList = document.getElementById('historyList');
+        const winCountEl = document.getElementById('winCount');
+        const lossCountEl = document.getElementById('lossCount');
+        const strategyHint = document.getElementById('strategyHint');
+        const strategyDisplay = document.getElementById('strategyDisplay');
+        const countdownTimerEl = document.getElementById('countdownTimer');
+        const liveClockEl = document.getElementById('liveClock24');
+        const resetHistoryBtn = document.getElementById('resetHistoryBtn');
 
-        function loadCredentials() {
-            const saved = localStorage.getItem('ethbot_credentials');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    currentUsername = data.username || 'admin';
-                    currentPassword = data.password || 'admin123';
-                    loginUsername.value = currentUsername;
-                    loginPassword.value = currentPassword;
-                } catch(e) {}
+        // ---- Helper: fetch with auth ----
+        async function apiFetch(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
             }
-        }
-        loadCredentials();
-
-        function saveCredentials(username, password) {
-            currentUsername = username;
-            currentPassword = password;
-            localStorage.setItem('ethbot_credentials', JSON.stringify({ username, password }));
-            displayUsername.textContent = username;
-        }
-
-        function login() {
-            const user = loginUsername.value.trim();
-            const pass = loginPassword.value.trim();
-            
-            if (!user || !pass) {
-                loginError.textContent = 'Please enter both username and password.';
-                return;
+            const resp = await fetch(`${API_BASE}${endpoint}`, {
+                ...options,
+                headers
+            });
+            const data = await resp.json();
+            if (!resp.ok) {
+                throw new Error(data.error || 'API error');
             }
-            
-            if (user === currentUsername && pass === currentPassword) {
-                loginError.textContent = '';
+            return data;
+        }
+
+        // ---- Login / Logout ----
+        async function performLogin(username, password) {
+            try {
+                const data = await apiFetch('/api/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ username, password })
+                });
+                authToken = data.token;
+                currentUsername = data.username;
+                localStorage.setItem('ethbot_token', authToken);
+                localStorage.setItem('ethbot_username', currentUsername);
                 loginOverlay.classList.add('hidden');
                 mainApp.style.display = 'block';
-                displayUsername.textContent = user;
-                localStorage.setItem('ethbot_logged_in', 'true');
-                if (typeof initBot === 'function') initBot();
-            } else {
-                loginError.textContent = 'Invalid username or password.';
+                displayUsername.textContent = currentUsername;
+                loginError.textContent = '';
+                startBot();
+            } catch (err) {
+                loginError.textContent = err.message || 'Invalid credentials';
             }
         }
 
         function logout() {
+            if (authToken) {
+                apiFetch('/api/logout', { method: 'POST' }).catch(() => {});
+            }
+            authToken = null;
+            currentUsername = '';
+            localStorage.removeItem('ethbot_token');
+            localStorage.removeItem('ethbot_username');
             mainApp.style.display = 'none';
             loginOverlay.classList.remove('hidden');
             loginError.textContent = '';
-            loginUsername.value = currentUsername;
             loginPassword.value = '';
-            localStorage.removeItem('ethbot_logged_in');
             if (window.botIntervals) {
                 window.botIntervals.forEach(clearInterval);
                 window.botIntervals = [];
             }
         }
 
-        function resetCredentials() {
-            const master = masterPassword.value.trim();
-            const newUser = newUsername.value.trim();
-            const newPass = newPassword.value.trim();
-            
-            forgotError.textContent = '';
-            forgotSuccess.textContent = '';
-            
-            if (master !== MASTER_PASSWORD) {
-                forgotError.textContent = 'Invalid credentials. Please try again.';
-                return;
-            }
-            
-            if (!newUser || !newPass) {
-                forgotError.textContent = 'Please enter both new username and password.';
-                return;
-            }
-            
-            if (newUser.length < 3 || newPass.length < 3) {
-                forgotError.textContent = 'Username and password must be at least 3 characters.';
-                return;
-            }
-            
-            saveCredentials(newUser, newPass);
-            loginUsername.value = newUser;
-            loginPassword.value = newPass;
-            forgotSuccess.textContent = 'Credentials reset successfully! You can now login.';
-            forgotError.textContent = '';
-            
-            setTimeout(() => {
-                forgotModal.classList.remove('active');
+        // ---- Reset Credentials ----
+        async function resetCredentials(master, newUser, newPass) {
+            try {
+                await apiFetch('/api/admin/reset-credentials', {
+                    method: 'POST',
+                    body: JSON.stringify({ masterPassword: master, newUsername: newUser, newPassword: newPass })
+                });
+                forgotSuccess.textContent = 'Credentials reset successfully! You can now login.';
+                forgotError.textContent = '';
+                setTimeout(() => {
+                    forgotModal.classList.remove('active');
+                    forgotSuccess.textContent = '';
+                    masterPassword.value = '';
+                    newUsername.value = '';
+                    newPassword.value = '';
+                }, 1500);
+            } catch (err) {
+                forgotError.textContent = err.message || 'Reset failed';
                 forgotSuccess.textContent = '';
-                masterPassword.value = '';
-                newUsername.value = '';
-                newPassword.value = '';
-            }, 1500);
+            }
         }
 
-        loginBtn.addEventListener('click', login);
-        loginPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
-        loginUsername.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+        // ---- UI Updates ----
+        function updateStrategyDisplay(strategy) {
+            if (strategy === 1) {
+                strategyDisplay.textContent = '⚡ HYBRID';
+                strategyHint.textContent = '15M TIMEFRAME · ⚡ HYBRID';
+            } else {
+                strategyDisplay.textContent = '🚀 TURBO';
+                strategyHint.textContent = '15M TIMEFRAME · 🚀 TURBO';
+            }
+        }
+
+        function setSignal(text, type) {
+            signalDisplay.textContent = text;
+            signalDisplay.className = 'signal-value';
+            if (type === 'green') signalDisplay.classList.add('signal-green');
+            else if (type === 'red') signalDisplay.classList.add('signal-red');
+            else signalDisplay.classList.add('signal-neutral');
+        }
+
+        function renderCandles(candles) {
+            candleGrid.innerHTML = '';
+            if (!candles || candles.length === 0) return;
+            candles.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'candle-item';
+                const colorClass = c.color === 'green' ? 'green' : 'red';
+                const arrow = c.color === 'green' ? '▲' : '▼';
+                const timeStr = new Date(c.openTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+                div.innerHTML = `
+                    <div class="time">${timeStr}</div>
+                    <div class="ohlc ${colorClass}">${arrow} ${c.close.toFixed(2)}</div>
+                    <div class="open-text">O:${c.open.toFixed(2)}</div>
+                `;
+                candleGrid.appendChild(div);
+            });
+        }
+
+        function renderHistory(history) {
+            historyList.innerHTML = '';
+            if (!history || history.length === 0) {
+                historyList.innerHTML = '<div style="color:#5a5a62; text-align:center; padding:16px; font-size:16px;">NO TRADES YET</div>';
+                return;
+            }
+            history.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'history-row';
+                const badge = item.result === 'WIN' ? '<span class="win-badge">WIN</span>' : '<span class="loss-badge">LOSS</span>';
+                const timeStr = new Date(item.candle_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+                row.innerHTML = `
+                    <span class="h-time">${timeStr}</span>
+                    <span style="font-weight:600;">${item.signal_direction}</span>
+                    <span class="h-price">$${item.result_price ? item.result_price.toFixed(2) : '--'}</span>
+                    <span class="h-result">${badge}</span>
+                `;
+                historyList.appendChild(row);
+            });
+        }
+
+        function updateCounters(wins, losses) {
+            winCountEl.textContent = wins || 0;
+            lossCountEl.textContent = losses || 0;
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            let targetMinute = 0;
+            if (minutes < 15) targetMinute = 15;
+            else if (minutes < 30) targetMinute = 30;
+            else if (minutes < 45) targetMinute = 45;
+            else targetMinute = 60;
+            let diffMinutes = targetMinute - minutes;
+            let diffSeconds = -seconds;
+            if (diffMinutes < 0) diffMinutes += 60;
+            if (diffMinutes === 60) diffMinutes = 0;
+            let totalSecs = diffMinutes * 60 + (60 + diffSeconds) % 60;
+            if (totalSecs === 0) totalSecs = 900;
+            const mins = Math.floor(totalSecs / 60);
+            const secs = totalSecs % 60;
+            countdownTimerEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateLiveClock() {
+            const now = new Date();
+            liveClockEl.textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        }
+
+        // ---- Fetch and update data from API ----
+        async function updateStatus() {
+            try {
+                const status = await apiFetch('/api/status');
+                // Update price
+                if (status.current_price) {
+                    livePriceEl.textContent = status.current_price.toFixed(2);
+                }
+                // Update strategy
+                updateStrategyDisplay(status.strategy);
+                // Update counters
+                updateCounters(status.wins, status.losses);
+                // Update signal display
+                if (status.pending_trade && status.last_prediction_direction) {
+                    const dir = status.last_prediction_direction;
+                    const text = dir === 'BUY' ? '📈 BUY' : '📉 SELL';
+                    const color = dir === 'BUY' ? 'green' : 'red';
+                    setSignal(text, color);
+                } else {
+                    setSignal('WAITING', 'neutral');
+                }
+            } catch (err) {
+                console.warn('Status update error:', err);
+            }
+        }
+
+        async function updateCandles() {
+            try {
+                const data = await apiFetch('/api/candles');
+                renderCandles(data.candles);
+            } catch (err) {
+                console.warn('Candles error:', err);
+            }
+        }
+
+        async function updateHistory() {
+            try {
+                const data = await apiFetch('/api/history');
+                renderHistory(data.history);
+            } catch (err) {
+                console.warn('History error:', err);
+            }
+        }
+
+        // ---- Reset history ----
+        async function resetHistory() {
+            if (!authToken) return;
+            try {
+                await apiFetch('/api/admin/reset-history', { method: 'POST' });
+                // Refresh data
+                await updateStatus();
+                await updateHistory();
+            } catch (err) {
+                alert('Reset failed: ' + err.message);
+            }
+        }
+
+        // ---- Bot main loop ----
+        function startBot() {
+            // Update immediately
+            updateStatus();
+            updateCandles();
+            updateHistory();
+            updateCountdown();
+            updateLiveClock();
+
+            // Set intervals
+            const intervals = [];
+            intervals.push(setInterval(updateStatus, 15000));
+            intervals.push(setInterval(updateCandles, 60000));
+            intervals.push(setInterval(updateHistory, 60000));
+            intervals.push(setInterval(updateCountdown, 1000));
+            intervals.push(setInterval(updateLiveClock, 1000));
+
+            window.botIntervals = intervals;
+        }
+
+        // ---- Event listeners ----
+        loginBtn.addEventListener('click', () => {
+            const user = loginUsername.value.trim();
+            const pass = loginPassword.value.trim();
+            if (!user || !pass) {
+                loginError.textContent = 'Please enter both username and password.';
+                return;
+            }
+            performLogin(user, pass);
+        });
+
+        loginPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') loginBtn.click(); });
+        loginUsername.addEventListener('keydown', (e) => { if (e.key === 'Enter') loginBtn.click(); });
 
         forgotLink.addEventListener('click', () => {
             forgotModal.classList.add('active');
@@ -766,468 +527,45 @@
             forgotModal.classList.remove('active');
         });
 
-        resetConfirmBtn.addEventListener('click', resetCredentials);
+        resetConfirmBtn.addEventListener('click', () => {
+            const master = masterPassword.value.trim();
+            const newUser = newUsername.value.trim();
+            const newPass = newPassword.value.trim();
+            if (!master || !newUser || !newPass) {
+                forgotError.textContent = 'All fields are required.';
+                return;
+            }
+            resetCredentials(master, newUser, newPass);
+        });
 
         logoutBtn.addEventListener('click', logout);
 
+        resetHistoryBtn.addEventListener('click', resetHistory);
+
         forgotModal.addEventListener('click', (e) => {
-            if (e.target === forgotModal) {
-                forgotModal.classList.remove('active');
-            }
+            if (e.target === forgotModal) forgotModal.classList.remove('active');
         });
 
-        // ============================================================
-        // BOT CODE WITH STRATEGY SHIFT ON 1 CONSECUTIVE LOSS
-        // ============================================================
-        function initBot() {
-            let currentCandles = [];
-            let history = [];
-            let wins = 0, losses = 0;
-            let lastPrediction = null;
-            let lastClosedCandleTime = null;
-            let countdownInterval = null;
-            let clockInterval = null;
-            let botInterval = null;
-            let lastTradeDirection = null;
-            let pendingTrade = false;
-            let consecutiveLosses = 0;
-            let currentStrategy = 1; // 1 or 2
-
-            let isTabVisible = true;
-            let missedSignals = [];
-            let lastUpdateTime = Date.now();
-
-            const livePriceEl = document.getElementById('livePrice');
-            const signalDisplay = document.getElementById('signalDisplay');
-            const candleGrid = document.getElementById('candleGrid');
-            const historyList = document.getElementById('historyList');
-            const winCountEl = document.getElementById('winCount');
-            const lossCountEl = document.getElementById('lossCount');
-            const strategyHint = document.getElementById('strategyHint');
-            const strategyDisplay = document.getElementById('strategyDisplay');
-            const countdownTimerEl = document.getElementById('countdownTimer');
-            const liveClockEl = document.getElementById('liveClock24');
-
-            window.botIntervals = [];
-
-            // ----- STRATEGY DEFINITIONS -----
-            function getPrediction(c1, c4, strategy) {
-                if (strategy === 1) {
-                    // Strategy #01 - hybrid
-                    if (c1 === 'red' && c4 === 'red') return 'red';
-                    if (c1 === 'green' && c4 === 'green') return 'green';
-                    if (c1 === 'red' && c4 === 'green') return 'red';
-                    if (c1 === 'green' && c4 === 'red') return 'green';
-                } else {
-                    // Strategy #02 - turbo (Opposite of Strategy #01)
-                    if (c1 === 'red' && c4 === 'red') return 'green';
-                    if (c1 === 'green' && c4 === 'green') return 'red';
-                    if (c1 === 'red' && c4 === 'green') return 'green';
-                    if (c1 === 'green' && c4 === 'red') return 'red';
-                }
-                return null;
-            }
-
-            function updateStrategyDisplay() {
-                if (currentStrategy === 1) {
-                    strategyDisplay.textContent = '⚡ HYBRID';
-                    strategyHint.textContent = '15M TIMEFRAME · ⚡ HYBRID';
-                } else {
-                    strategyDisplay.textContent = '🚀 TURBO';
-                    strategyHint.textContent = '15M TIMEFRAME · 🚀 TURBO';
-                }
-            }
-
-            function switchStrategy() {
-                if (currentStrategy === 1) {
-                    currentStrategy = 2;
-                    console.log("🔄 Switched to Strategy #02 (TURBO)");
-                } else {
-                    currentStrategy = 1;
-                    console.log("🔄 Switched to Strategy #01 (HYBRID)");
-                }
-                updateStrategyDisplay();
-                consecutiveLosses = 0;
-                console.log(`📊 Consecutive losses reset to 0`);
-            }
-
-            function setupVisibilityHandler() {
-                document.addEventListener("visibilitychange", function() {
-                    if (document.visibilityState === "visible") {
-                        console.log("🟢 Tab visible - Bot active!");
-                        isTabVisible = true;
-                        statusDot.className = 'status-dot active';
-                        statusText.textContent = 'Active';
-                        processMissedSignals();
-                        updateBot();
-                    } else {
-                        console.log("🔴 Tab hidden - Bot paused!");
-                        isTabVisible = false;
-                        statusDot.className = 'status-dot inactive';
-                        statusText.textContent = 'Inactive';
-                    }
-                });
-            }
-
-            function processMissedSignals() {
-                if (missedSignals.length === 0) {
-                    console.log("✅ No missed signals.");
-                    return;
-                }
-                console.log(`📦 Processing ${missedSignals.length} missed signals...`);
-                missedSignals.forEach(signal => {
-                    if (signal.type === 'candle') {
-                        const candle = signal.data;
-                        if (candle.rawTime !== lastClosedCandleTime) {
-                            processTradeResult(candle);
-                            lastClosedCandleTime = candle.rawTime;
-                            generateSignal(currentCandles);
-                        }
-                    }
-                });
-                missedSignals = [];
-                renderHistory();
-                updateCounters();
-            }
-
-            function formatTime24(timestamp) {
-                const d = new Date(timestamp);
-                return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-            }
-
-            function updateLiveClock() {
-                const now = new Date();
-                liveClockEl.textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-            }
-
-            async function fetchLivePrice() {
-                try {
-                    const resp = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=ETHUSDT');
-                    const data = await resp.json();
-                    if (data.price) {
-                        livePriceEl.textContent = parseFloat(data.price).toFixed(2);
-                    }
-                } catch (e) {
-                    livePriceEl.textContent = (3000 + Math.random() * 200).toFixed(2);
-                }
-            }
-
-            async function fetchCandles() {
-                try {
-                    const url = `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=15m&limit=7`;
-                    const resp = await fetch(url);
-                    const data = await resp.json();
-                    if (!data || data.length < 2) return false;
-
-                    const closed = data.slice(0, 6);
-                    if (closed.length < 6) return false;
-
-                    const parsed = closed.map(candle => ({
-                        open: parseFloat(candle[1]),
-                        close: parseFloat(candle[4]),
-                        time: formatTime24(candle[0]),
-                        color: parseFloat(candle[4]) >= parseFloat(candle[1]) ? 'green' : 'red',
-                        rawTime: candle[0]
-                    }));
-
-                    currentCandles = parsed;
-                    renderCandles(parsed);
-
-                    const lastCandle = parsed[parsed.length - 1];
-                    if (!lastCandle) return true;
-
-                    if (!isTabVisible) {
-                        console.log("📌 Tab hidden - Storing missed signal...");
-                        missedSignals.push({
-                            type: 'candle',
-                            data: lastCandle,
-                            timestamp: Date.now()
-                        });
-                        return true;
-                    }
-
-                    if (lastCandle.rawTime !== lastClosedCandleTime) {
-                        processTradeResult(lastCandle);
-                        lastClosedCandleTime = lastCandle.rawTime;
-                        generateSignal(parsed);
-                    }
-
-                    return true;
-                } catch (e) {
-                    console.warn('fetchCandles error', e);
-                    generateMockCandles();
-                    return false;
-                }
-            }
-
-            function generateMockCandles() {
-                const now = Date.now();
-                const mock = [];
-                for (let i = 5; i >= 0; i--) {
-                    const base = 3000 + Math.random() * 150;
-                    const open = base + (Math.random() - 0.5) * 20;
-                    const close = open + (Math.random() - 0.5) * 30;
-                    const time = new Date(now - i * 15 * 60000);
-                    mock.push({
-                        open: parseFloat(open.toFixed(2)),
-                        close: parseFloat(close.toFixed(2)),
-                        time: formatTime24(time.getTime()),
-                        color: close >= open ? 'green' : 'red',
-                        rawTime: time.getTime()
-                    });
-                }
-                currentCandles = mock;
-                const lastCandle = mock[mock.length - 1];
-                if (!isTabVisible) {
-                    missedSignals.push({
-                        type: 'candle',
-                        data: lastCandle,
-                        timestamp: Date.now()
-                    });
-                    renderCandles(mock);
-                    return;
-                }
-                if (lastCandle && lastCandle.rawTime !== lastClosedCandleTime) {
-                    lastClosedCandleTime = lastCandle.rawTime;
-                    processTradeResult(lastCandle);
-                    generateSignal(mock);
-                }
-                renderCandles(mock);
-            }
-
-            function processTradeResult(closedCandle) {
-                if (!pendingTrade || !lastTradeDirection) return;
-
-                const actualColor = closedCandle.color;
-                const price = closedCandle.close;
-                const isWin = (lastTradeDirection === actualColor);
-
-                if (isWin) {
-                    wins++;
-                    consecutiveLosses = 0;
-                    pendingTrade = false;
-                    const dir = lastTradeDirection;
-                    lastTradeDirection = null;
-                    history.unshift({
-                        time: closedCandle.time,
-                        prediction: dir === 'green' ? 'BUY' : 'SELL',
-                        result: 'WIN',
-                        price: price.toFixed(2)
-                    });
-                    if (history.length > 30) history.pop();
-                    renderHistory();
-                    updateCounters();
-                    setSignal('✅ WIN', 'green');
-                    console.log(`✅ WIN! Consecutive losses reset to 0`);
-                } else {
-                    losses++;
-                    consecutiveLosses++;
-                    pendingTrade = false;
-                    const dir = lastTradeDirection;
-                    lastTradeDirection = null;
-                    history.unshift({
-                        time: closedCandle.time,
-                        prediction: dir === 'green' ? 'BUY' : 'SELL',
-                        result: 'LOSS',
-                        price: price.toFixed(2)
-                    });
-                    if (history.length > 30) history.pop();
-                    renderHistory();
-                    updateCounters();
-                    setSignal('❌ LOSS', 'red');
-                    console.log(`❌ LOSS! Consecutive losses: ${consecutiveLosses}`);
-
-                    if (consecutiveLosses >= 1) {
-                        console.log(`⚠️ 1 loss detected! Switching strategy...`);
-                        switchStrategy();
-                        pendingTrade = false;
-                        lastTradeDirection = null;
-                        setSignal('🔄 STRATEGY SWITCHED', 'neutral');
-                    }
-                }
-            }
-
-            function generateSignal(candles) {
-                if (!candles || candles.length < 6) {
-                    setSignal('WAITING', 'neutral');
-                    return;
-                }
-
-                const c1 = candles[0];
-                const c4 = candles[3];
-                const c1Color = c1.color;
-                const c4Color = c4.color;
-
-                const prediction = getPrediction(c1Color, c4Color, currentStrategy);
-
-                if (!prediction) {
-                    setSignal('NEUTRAL', 'neutral');
-                    lastPrediction = null;
-                    return;
-                }
-
-                if (!pendingTrade) {
-                    lastTradeDirection = prediction;
-                    pendingTrade = true;
-                    const predStr = prediction === 'green' ? '📈 BUY' : '📉 SELL';
-                    setSignal(predStr, prediction);
-                    lastPrediction = prediction;
-                    const strategyName = currentStrategy === 1 ? 'HYBRID' : 'TURBO';
-                    console.log(`📊 ${strategyName} | C1:${c1Color} C4:${c4Color} → ${prediction.toUpperCase()}`);
-                } else {
-                    const dirStr = lastTradeDirection === 'green' ? '📈 BUY' : '📉 SELL';
-                    setSignal(dirStr, lastTradeDirection);
-                    lastPrediction = lastTradeDirection;
-                }
-            }
-
-            function setSignal(text, type) {
-                signalDisplay.textContent = text;
-                signalDisplay.className = 'signal-value';
-                if (type === 'green') signalDisplay.classList.add('signal-green');
-                else if (type === 'red') signalDisplay.classList.add('signal-red');
-                else signalDisplay.classList.add('signal-neutral');
-            }
-
-            function renderCandles(candles) {
-                candleGrid.innerHTML = '';
-                candles.forEach((c) => {
-                    const div = document.createElement('div');
-                    div.className = 'candle-item';
-                    const colorClass = c.color === 'green' ? 'green' : 'red';
-                    const arrow = c.color === 'green' ? '▲' : '▼';
-                    div.innerHTML = `
-                        <div class="time">${c.time}</div>
-                        <div class="ohlc ${colorClass}">${arrow} ${c.close.toFixed(2)}</div>
-                        <div class="open-text">O:${c.open.toFixed(2)}</div>
-                    `;
-                    candleGrid.appendChild(div);
-                });
-            }
-
-            function renderHistory() {
-                historyList.innerHTML = '';
-                if (history.length === 0) {
-                    historyList.innerHTML = '<div style="color:#5a5a62; text-align:center; padding:16px; font-size:16px;">NO TRADES YET</div>';
-                    return;
-                }
-                history.forEach(item => {
-                    const row = document.createElement('div');
-                    row.className = 'history-row';
-                    const badge = item.result === 'WIN' ? '<span class="win-badge">WIN</span>' : '<span class="loss-badge">LOSS</span>';
-                    row.innerHTML = `
-                        <span class="h-time">${item.time}</span>
-                        <span style="font-weight:600;">${item.prediction}</span>
-                        <span class="h-price">$${item.price}</span>
-                        <span class="h-result">${badge}</span>
-                    `;
-                    historyList.appendChild(row);
-                });
-            }
-
-            function updateCounters() {
-                winCountEl.textContent = wins;
-                lossCountEl.textContent = losses;
-            }
-
-            function resetHistory() {
-                history = [];
-                wins = 0;
-                losses = 0;
-                consecutiveLosses = 0;
-                pendingTrade = false;
-                lastTradeDirection = null;
-                lastPrediction = null;
-                missedSignals = [];
-                currentStrategy = 1;
-                updateStrategyDisplay();
-                winCountEl.textContent = '0';
-                lossCountEl.textContent = '0';
-                renderHistory();
-                setSignal('WAITING', 'neutral');
-                console.log("🔄 History reset. Strategy back to #01 (HYBRID)");
-            }
-
-            function updateCountdown() {
-                const now = new Date();
-                const minutes = now.getMinutes();
-                const seconds = now.getSeconds();
-                let targetMinute = 0;
-                if (minutes < 15) targetMinute = 15;
-                else if (minutes < 30) targetMinute = 30;
-                else if (minutes < 45) targetMinute = 45;
-                else targetMinute = 60;
-
-                let diffMinutes = targetMinute - minutes;
-                let diffSeconds = -seconds;
-                if (diffMinutes < 0) diffMinutes += 60;
-                if (diffMinutes === 60) { diffMinutes = 0; }
-                let totalSecs = diffMinutes * 60 + (60 + diffSeconds) % 60;
-                if (totalSecs === 0) totalSecs = 900;
-
-                const mins = Math.floor(totalSecs / 60);
-                const secs = totalSecs % 60;
-                countdownTimerEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-            }
-
-            function keepBotAccurateInBackground() {
-                setInterval(() => {
-                    if (!isTabVisible) {
-                        const now = Date.now();
-                        const diff = (now - lastUpdateTime) / 1000;
-                        if (diff > 30) {
-                            console.log("🔄 Background update...");
-                            fetchCandles();
-                            fetchLivePrice();
-                            lastUpdateTime = now;
-                        }
-                    }
-                }, 10000);
-            }
-
-            async function updateBot() {
-                await fetchLivePrice();
-                await fetchCandles();
-                updateCountdown();
-                updateLiveClock();
-                lastUpdateTime = Date.now();
-            }
-
-            document.getElementById('resetHistoryBtn').addEventListener('click', resetHistory);
-
-            // Initialize strategy display
-            updateStrategyDisplay();
-            updateBot();
-            
-            clockInterval = setInterval(() => updateLiveClock(), 1000);
-            window.botIntervals.push(clockInterval);
-            
-            countdownInterval = setInterval(() => updateCountdown(), 1000);
-            window.botIntervals.push(countdownInterval);
-            
-            botInterval = setInterval(() => updateBot(), 15000);
-            window.botIntervals.push(botInterval);
-            
-            setupVisibilityHandler();
-            keepBotAccurateInBackground();
-
-            setTimeout(() => {
-                if (document.visibilityState === "visible") {
-                    processMissedSignals();
-                }
-            }, 2000);
-
-            console.log("🤖 Bot initialized with Strategy Shift on 1 consecutive loss!");
-            console.log("📊 Strategy #01 (HYBRID) active.");
+        // ---- Check saved session ----
+        const savedToken = localStorage.getItem('ethbot_token');
+        const savedUsername = localStorage.getItem('ethbot_username');
+        if (savedToken && savedUsername) {
+            authToken = savedToken;
+            currentUsername = savedUsername;
+            // Verify token by trying to fetch status
+            apiFetch('/api/status').then(() => {
+                loginOverlay.classList.add('hidden');
+                mainApp.style.display = 'block';
+                displayUsername.textContent = currentUsername;
+                startBot();
+            }).catch(() => {
+                // Token invalid, clear and show login
+                localStorage.removeItem('ethbot_token');
+                localStorage.removeItem('ethbot_username');
+                authToken = null;
+                currentUsername = '';
+            });
         }
-
-        if (localStorage.getItem('ethbot_logged_in') === 'true') {
-            loginOverlay.classList.add('hidden');
-            mainApp.style.display = 'block';
-            displayUsername.textContent = currentUsername;
-            initBot();
-        }
-
     })();
 </script>
 </body>
