@@ -2,7 +2,6 @@ import * as binance from './binance';
 import * as strategy from './strategy';
 import * as db from './database';
 import * as api from './api';
-import * as auth from './auth';
 
 export default {
     async fetch(request, env) {
@@ -10,14 +9,12 @@ export default {
             const url = new URL(request.url);
             const path = url.pathname;
 
-            // Log every request (helps debugging)
             console.log(`Request: ${request.method} ${path}`);
 
-            // CORS headers
             const corsHeaders = {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+                'Access-Control-Allow-Headers': 'Content-Type'
             };
             if (request.method === 'OPTIONS') {
                 return new Response(null, { headers: corsHeaders });
@@ -37,28 +34,17 @@ export default {
                 case '/api/candles':
                     response = await api.handleCandles(env, request);
                     break;
-                case '/api/login':
-                    response = await api.handleLogin(env, request);
-                    break;
-                case '/api/logout':
-                    response = await api.handleLogout(env, request);
-                    break;
                 case '/api/admin/reset-history':
                     response = await api.handleResetHistory(env, request);
-                    break;
-                case '/api/admin/reset-credentials':
-                    response = await api.handleResetCredentials(env, request);
                     break;
                 default:
                     response = new Response(JSON.stringify({ error: 'Not found' }), { status: 404 });
             }
 
-            // Add CORS headers to response
             const newHeaders = new Headers(response.headers);
             for (const [key, value] of Object.entries(corsHeaders)) {
                 newHeaders.set(key, value);
             }
-            // Ensure Content-Type is JSON for all responses (unless it's a streaming response)
             if (!newHeaders.has('Content-Type')) {
                 newHeaders.set('Content-Type', 'application/json');
             }
@@ -94,4 +80,81 @@ export default {
     }
 };
 
-// (Keep the processNewCandle function as before, but ensure it uses env.DB correctly)
+async function processNewCandle(env) {
+    const symbol = env.SYMBOL || 'ETHUSDT';
+    const timeframe = env.TIMEFRAME || '15m';
+    const limit = env.CANDLE_LIMIT || 10;
+
+    const allCandles = await binance.fetchClosedCandles(symbol, timeframe, limit);
+    if (allCandles.length === 0) {
+        console.log('No closed candles available');
+        return;
+    }
+
+    const latestCandle = allCandles[allCandles.length - 1];
+    if (!latestCandle) return;
+
+    const state = await db.getBotState(env);
+    const lastProcessed = state.last_closed_candle_time;
+
+    if (latestCandle.openTime <= lastProcessed) {
+        console.log('No new candle since last process');
+        return;
+    }
+
+    const newCandles = allCandles.filter(c => c.openTime > lastProcessed);
+    console.log(`Processing ${newCandles.length} new candles`);
+
+    let currentState = state;
+    for (const candle of newCandles) {
+        // Evaluate pending trade
+        if (currentState.pending_trade === 1 && currentState.last_prediction_direction) {
+            const predictedColor = currentState.last_prediction_direction === 'BUY' ? 'green' : 'red';
+            const actualColor = candle.color;
+            const result = strategy.evaluateTrade(predictedColor, actualColor);
+            const isWin = result === 'WIN';
+
+            if (isWin) {
+                currentState.wins++;
+                currentState.consecutive_losses = 0;
+            } else {
+                currentState.losses++;
+                currentState.consecutive_losses++;
+                if (currentState.consecutive_losses >= 1) {
+                    currentState.current_strategy = strategy.switchStrategy(currentState.current_strategy);
+                    currentState.consecutive_losses = 0;
+                }
+            }
+
+            if (currentState.pending_signal_id) {
+                await db.evaluateSignal(env, currentState.pending_signal_id, result, candle.close, candle.openTime);
+            }
+
+            currentState.pending_trade = 0;
+            currentState.last_prediction_direction = null;
+            currentState.pending_signal_id = null;
+        }
+
+        // Generate new signal using the last 6 closed candles
+        const currentCandles = allCandles.slice(-6);
+        if (currentCandles.length >= 6) {
+            const c1 = currentCandles[0].color;
+            const c4 = currentCandles[3].color;
+            const predictedColor = strategy.getPrediction(c1, c4, currentState.current_strategy);
+            if (predictedColor) {
+                const direction = strategy.colorToDirection(predictedColor);
+                const created_at = Date.now();
+                const signalId = await db.insertPendingSignal(env, symbol, timeframe, direction, currentState.current_strategy, created_at);
+                currentState.pending_trade = 1;
+                currentState.last_prediction_direction = direction;
+                currentState.pending_signal_id = signalId;
+                console.log(`Generated new ${direction} signal (strategy ${currentState.current_strategy})`);
+            }
+        }
+
+        currentState.last_closed_candle_time = candle.openTime;
+    }
+
+    await db.updateBotState(env, currentState);
+    console.log('State updated');
+}
