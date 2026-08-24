@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETHUSDT · 15m Bot · Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(8px);
+        }
+        #loginOverlay.hidden { display: none; }
+        .login-box {
+            background: #141416;
+            border-radius: 32px;
+            padding: 40px 44px;
+            max-width: 420px;
+            width: 100%;
+            border: 1px solid #2a2a2e;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.9);
+        }
+        .login-box h2 {
+            color: #e8e8e8;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .login-box .subtitle {
+            color: #888892;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .login-box .subtitle i { color: #f0b90b; }
+        .login-box label {
+            color: #b0b0b8;
+            font-size: 14px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0d0d0f;
+            border: 1px solid #2a2a2e;
+            border-radius: 12px;
+            color: #e8e8e8;
+            font-size: 16px;
+            outline: none;
+            transition: 0.2s;
+            margin-bottom: 16px;
+        }
+        .login-box input:focus { border-color: #f0b90b; }
+        .login-box .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: #f0b90b;
+            border: none;
+            border-radius: 12px;
+            color: #0a0a0a;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+        }
+        .login-box .btn-login:hover { background: #d4a40a; }
+        .login-box .forgot-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .login-box .forgot-row a {
+            color: #888892;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .login-box .forgot-row a:hover { color: #f0b90b; }
+        .login-box .error-msg {
+            color: #f6465d;
+            font-size: 13px;
+            margin-top: 10px;
+            text-align: center;
+            min-height: 20px;
+        }
+        .forgot-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.9);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .forgot-modal.active { display: flex; }
+        .forgot-box {
+            background: #141416;
+            border-radius: 32px;
+            padding: 36px 40px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid #2a2a2e;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.9);
+        }
+        .forgot-box h3 {
+            color: #e8e8e8;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .forgot-box .admin-auth-text {
+            color: #f0b90b;
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        .forgot-box .admin-auth-text i {
+            margin-right: 8px;
+        }
+        .forgot-box label {
+            color: #b0b0b8;
+            font-size: 14px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .forgot-box input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0d0d0f;
+            border: 1px solid #2a2a2e;
+            border-radius: 12px;
+            color: #e8e8e8;
+            font-size: 16px;
+            outline: none;
+            transition: 0.2s;
+            margin-bottom: 16px;
+        }
+        .forgot-box input:focus { border-color: #f0b90b; }
+        .forgot-box .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .forgot-box .btn-row button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .forgot-box .btn-row .btn-confirm {
+            background: #f0b90b;
+            color: #0a0a0a;
+        }
+        .forgot-box .btn-row .btn-confirm:hover { background: #d4a40a; }
+        .forgot-box .btn-row .btn-cancel {
+            background: #222226;
+            color: #888892;
+        }
+        .forgot-box .btn-row .btn-cancel:hover {
+            background: #333337;
+            color: #e8e8e8;
+        }
+        .forgot-box .forgot-error {
+            color: #f6465d;
+            font-size: 13px;
+            margin-top: 10px;
+            text-align: center;
+            min-height: 20px;
+        }
+        .forgot-box .forgot-success {
+            color: #0ecb81;
+            font-size: 13px;
+            margin-top: 10px;
+            text-align: center;
+            min-height: 20px;
+        }
+        .binance-card {
+            max-width: 1100px;
+            width: 100%;
+            background: #141416;
+            border-radius: 40px;
+            padding: 40px 48px 48px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+            border: 1px solid #2a2a2e;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a2a2e;
+            padding-bottom: 24px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+        .pair {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .pair h1 {
+            font-size: 34px;
+            font-weight: 700;
+            color: #e8e8e8;
+        }
+        .pair i { color: #f0b90b; font-size: 30px; }
+        .badge {
+            background: #222226;
+            color: #a0a0a8;
+            font-size: 22px;
+            font-weight: 700;
+            padding: 8px 22px;
+            border-radius: 40px;
+            border: 1px solid #333337;
+        }
+        .price-box {
+            background: #0d0d0f;
+            padding: 14px 28px;
+            border-radius: 40px;
+            border: 1px solid #2a2a2e;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .price-live {
+            font-size: 32px;
+            font-weight: 700;
+            color: #e8e8e8;
+        }
+        .price-live i { color: #f0b90b; font-size: 22px; margin-right: 8px; }
+        .timeframe-badge {
+            background: #141416;
+            color: #a0a0a8;
+            font-size: 16px;
+            padding: 6px 18px;
+            border-radius: 30px;
+            border: 1px solid #333337;
+            font-weight: 600;
+        }
+        .signal-box {
+            background: #0d0d0f;
+            border-radius: 28px;
+            padding: 28px 32px;
+            margin: 24px 0 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid #2a2a2e;
+        }
+        .signal-label {
+            color: #888892;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+        .signal-value { font-size: 40px; font-weight: 700; }
+        .signal-green { color: #0ecb81; }
+        .signal-red { color: #f6465d; }
+        .signal-neutral { color: #888892; }
+        .candle-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 16px 0 24px;
+            flex-wrap: wrap;
+        }
+        .candle-item {
+            background: #141416;
+            border: 1px solid #2a2a2e;
+            border-radius: 18px;
+            padding: 14px 12px;
+            flex: 1 0 70px;
+            text-align: center;
+        }
+        .candle-item .time {
+            font-size: 16px;
+            color: #6a6a72;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .candle-item .ohlc {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 8px;
+            text-transform: uppercase;
+        }
+        .candle-item .open-text {
+            font-size: 15px;
+            font-weight: 700;
+            color: #5a5a62;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+        .green { color: #0ecb81; }
+        .red { color: #f6465d; }
+        .win-badge { background: #0ecb81; color: #0a0a0a; font-weight: 700; padding: 4px 14px; border-radius: 30px; font-size: 14px; }
+        .loss-badge { background: #f6465d; color: #fff; font-weight: 700; padding: 4px 14px; border-radius: 30px; font-size: 14px; }
+        .history-section {
+            margin-top: 32px;
+            border-top: 1px solid #2a2a2e;
+            padding-top: 26px;
+        }
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #b0b0b8;
+            font-size: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .history-header .history-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .history-header .history-title i { color: #f0b90b; }
+        .history-header .win-loss-display {
+            font-size: 20px;
+            font-weight: 700;
+            color: #b0b0b8;
+        }
+        .history-header .win-loss-display .win-count { color: #0ecb81; }
+        .history-header .win-loss-display .loss-count { color: #f6465d; }
+        .history-header .strategy-display {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f0b90b;
+            background: #0d0d0f;
+            padding: 6px 20px;
+            border-radius: 30px;
+            border: 1px solid #2a2a2e;
+            text-transform: uppercase;
+        }
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+        .history-list::-webkit-scrollbar { width: 5px; }
+        .history-list::-webkit-scrollbar-track { background: #141416; }
+        .history-list::-webkit-scrollbar-thumb { background: #333337; border-radius: 10px; }
+        .history-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: #0d0d0f;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            border-left: 4px solid #2a2a2e;
+            font-size: 17px;
+            color: #e0e0e0;
+            align-items: center;
+        }
+        .history-row .h-time { color: #6a6a72; font-size: 15px; font-weight: 600; }
+        .history-row .h-result { font-weight: 700; }
+        .history-row .h-price { font-size: 16px; color: #888892; font-weight: 600; }
+        .btn-reset {
+            background: #222226;
+            border: none;
+            color: #888892;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+        .btn-reset:hover {
+            background: #333337;
+            color: #e8e8e8;
+        }
+        .footer-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            color: #5a5a62;
+            margin-top: 22px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .countdown-box {
+            background: #0d0d0f;
+            padding: 10px 24px;
+            border-radius: 40px;
+            border: 1px solid #2a2a2e;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+        .countdown-box i { color: #f0b90b; }
+        #countdownTimer {
+            color: #e0e0e0;
+            font-size: 20px;
+            font-variant-numeric: tabular-nums;
+        }
+        .live-clock {
+            background: #0d0d0f;
+            padding: 10px 24px;
+            border-radius: 40px;
+            border: 1px solid #2a2a2e;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            color: #e0e0e0;
+            font-size: 20px;
+            font-variant-numeric: tabular-nums;
+        }
+        .live-clock i { color: #f0b90b; }
+        .label-big-cap {
+            font-size: 20px;
+            font-weight: 700;
+            color: #b0b0b8;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .label-big-cap i { margin-right: 8px; }
+        .label-sub {
+            font-size: 20px;
+            font-weight: 700;
+            color: #888892;
+            text-transform: uppercase;
+        }
+        .user-info {
+            color: #888892;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .user-info i { color: #f0b90b; }
+        .btn-logout {
+            background: #222226;
+            border: none;
+            color: #888892;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-logout:hover {
+            background: #333337;
+            color: #e8e8e8;
+        }
+        .tab-status {
+            background: #0d0d0f;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid #2a2a2e;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-status .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .tab-status .status-dot.active { background: #0ecb81; }
+        .tab-status .status-dot.inactive { background: #f6465d; }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay">
+    <div class="login-box">
+        <h2><i class="fab fa-bitcoin" style="color:#f0b90b;"></i> ETHUSDT BOT</h2>
+        <div class="subtitle"><i class="fas fa-lock"></i> Secure Login</div>
+        
+        <label for="loginUsername">Username</label>
+        <input type="text" id="loginUsername" placeholder="Enter username" value="">
+        
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter password" value="">
+        
+        <button class="btn-login" id="loginBtn"><i class="fas fa-sign-in-alt"></i> LOGIN</button>
+        
+        <div class="forgot-row">
+            <a id="forgotLink"><i class="fas fa-key"></i> Forgot username or password?</a>
+        </div>
+        <div id="loginError" class="error-msg"></div>
+    </div>
+</div>
+
+<!-- FORGOT MODAL -->
+<div class="forgot-modal" id="forgotModal">
+    <div class="forgot-box">
+        <h3><i class="fas fa-key" style="color:#f0b90b;"></i> Reset Credentials</h3>
+        
+        <p class="admin-auth-text">
+            <i class="fas fa-shield-alt"></i> THIS ACTION REQUIRES ADMINISTRATOR AUTHORIZATION.
+        </p>
+        
+        <label for="masterPassword">Master Password</label>
+        <input type="password" id="masterPassword" placeholder="Enter master password">
+        
+        <label for="newUsername">New Username</label>
+        <input type="text" id="newUsername" placeholder="Enter new username">
+        
+        <label for="newPassword">New Password</label>
+        <input type="password" id="newPassword" placeholder="Enter new password">
+        
+        <div class="btn-row">
+            <button class="btn-confirm" id="resetConfirmBtn"><i class="fas fa-check"></i> Reset</button>
+            <button class="btn-cancel" id="resetCancelBtn"><i class="fas fa-times"></i> Cancel</button>
+        </div>
+        <div id="forgotError" class="forgot-error"></div>
+        <div id="forgotSuccess" class="forgot-success"></div>
+    </div>
+</div>
+
+<!-- MAIN BOT -->
+<div class="binance-card" id="mainApp" style="display:none;">
+    <div class="header">
+        <div class="pair">
+            <i class="fab fa-bitcoin"></i>
+            <h1>ETHUSDT</h1>
+            <span class="badge"><i class="far fa-clock"></i> 15M</span>
+        </div>
+        <div class="price-box">
+            <span class="price-live"><i class="fas fa-chart-line"></i> <span id="livePrice">--</span></span>
+            <span class="timeframe-badge"><i class="far fa-circle"></i> LIVE</span>
+        </div>
+    </div>
+
+    <div class="signal-box">
+        <span class="signal-label"><i class="fas fa-bullhorn"></i> SIGNAL</span>
+        <span id="signalDisplay" class="signal-value signal-neutral">WAITING</span>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+        <span class="label-big-cap"><i class="fas fa-candlestick"></i> LAST CLOSED CANDLES (15M)</span>
+        <span id="strategyHint" class="label-sub">15M TIMEFRAME · ⚡ HYBRID</span>
+    </div>
+    <div class="candle-grid" id="candleGrid"></div>
+
+    <div class="history-section">
+        <div class="history-header">
+            <span class="history-title"><i class="fas fa-list-ul"></i> TRADING HISTORY</span>
+            <span class="win-loss-display"><span id="winCount" class="win-count">0</span>W / <span id="lossCount" class="loss-count">0</span>L</span>
+            <span class="strategy-display" id="strategyDisplay">⚡ HYBRID</span>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <button class="btn-reset" id="resetHistoryBtn"><i class="fas fa-undo-alt"></i> RESET</button>
+            </div>
+        </div>
+        <div class="history-list" id="historyList"></div>
+    </div>
+
+    <div class="footer-meta">
+        <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+            <div class="live-clock">
+                <i class="fas fa-clock"></i>
+                <span id="liveClock24">--:--:--</span>
+            </div>
+            <div class="user-info">
+                <i class="fas fa-user"></i>
+                <span id="displayUsername">admin</span>
+                <button class="btn-logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> logout</button>
+            </div>
+            <span class="tab-status" id="tabStatus">
+                <span class="status-dot active" id="statusDot"></span>
+                <span id="statusText">Active</span>
+            </span>
+        </div>
+        <div class="countdown-box">
+            <i class="fas fa-hourglass-half"></i>
+            <span>NEXT CLOSE IN</span>
+            <span id="countdownTimer">--:--</span>
+        </div>
+    </div>
+</div>
+
+
+<script>
+(function () {
+    const API_BASE = "https://YOUR-WORKER-SUBDOMAIN.workers.dev";
+
+    const loginOverlay = document.getElementById('loginOverlay');
+    const mainApp = document.getElementById('mainApp');
+    const loginUsername = document.getElementById('loginUsername');
+    const loginPassword = document.getElementById('loginPassword');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginError = document.getElementById('loginError');
+    const forgotLink = document.getElementById('forgotLink');
+    const forgotModal = document.getElementById('forgotModal');
+    const masterPassword = document.getElementById('masterPassword');
+    const newUsername = document.getElementById('newUsername');
+    const newPassword = document.getElementById('newPassword');
+    const resetConfirmBtn = document.getElementById('resetConfirmBtn');
+    const resetCancelBtn = document.getElementById('resetCancelBtn');
+    const forgotError = document.getElementById('forgotError');
+    const forgotSuccess = document.getElementById('forgotSuccess');
+    const displayUsername = document.getElementById('displayUsername');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const livePriceEl = document.getElementById('livePrice');
+    const signalDisplay = document.getElementById('signalDisplay');
+    const candleGrid = document.getElementById('candleGrid');
+    const historyList = document.getElementById('historyList');
+    const winCountEl = document.getElementById('winCount');
+    const lossCountEl = document.getElementById('lossCount');
+    const strategyHint = document.getElementById('strategyHint');
+    const strategyDisplay = document.getElementById('strategyDisplay');
+    const countdownTimerEl = document.getElementById('countdownTimer');
+    const liveClockEl = document.getElementById('liveClock24');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+
+    let refreshTimer = null;
+    let clockTimer = null;
+
+    function api(path, options = {}) {
+        return fetch(API_BASE + path, {
+            ...options,
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                ...(options.headers || {})
+            }
+        }).then(async response => {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data.ok === false) {
+                throw new Error(data.error || `HTTP ${response.status}`);
+            }
+            return data;
+        });
+    }
+
+    function formatTime(timestamp) {
+        return new Date(Number(timestamp)).toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+    }
+
+    function updateClock() {
+        liveClockEl.textContent = new Date().toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+    }
+
+    function updateCountdown() {
+        const now = new Date();
+        const secondsIntoHour = now.getMinutes() * 60 + now.getSeconds();
+        const remaining = 900 - (secondsIntoHour % 900);
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        countdownTimerEl.textContent =
+            `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function renderCandles(candles) {
+        candleGrid.innerHTML = '';
+        candles.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'candle-item';
+            const colorClass = c.color === 'green' ? 'green' : 'red';
+            const arrow = c.color === 'green' ? '▲' : '▼';
+            div.innerHTML = `
+                <div class="time">${formatTime(c.rawTime)}</div>
+                <div class="ohlc ${colorClass}">${arrow} ${Number(c.close).toFixed(2)}</div>
+                <div class="open-text">O:${Number(c.open).toFixed(2)}</div>
+            `;
+            candleGrid.appendChild(div);
+        });
+    }
+
+    function renderHistory(signals) {
+        historyList.innerHTML = '';
+
+        if (!signals.length) {
+            historyList.innerHTML =
+                '<div style="color:#5a5a62;text-align:center;padding:16px;font-size:16px;">NO TRADES YET</div>';
+            return;
+        }
+
+        signals.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'history-row';
+
+            const badge = item.result === 'WIN'
+                ? '<span class="win-badge">WIN</span>'
+                : item.result === 'LOSS'
+                    ? '<span class="loss-badge">LOSS</span>'
+                    : '<span style="color:#888892;">PENDING</span>';
+
+            row.innerHTML = `
+                <span class="h-time">${formatTime(item.candle_time)}</span>
+                <span style="font-weight:600;">${item.signal}</span>
+                <span class="h-price">$${Number(item.entry_price).toFixed(2)}</span>
+                <span class="h-result">${badge}</span>
+            `;
+
+            historyList.appendChild(row);
+        });
+    }
+
+    function updateStrategy(strategyName) {
+        const name = strategyName || 'HYBRID';
+        strategyDisplay.textContent = name === 'HYBRID' ? '⚡ HYBRID' : '🚀 TURBO';
+        strategyHint.textContent =
+            name === 'HYBRID'
+                ? '15M TIMEFRAME · ⚡ HYBRID'
+                : '15M TIMEFRAME · 🚀 TURBO';
+    }
+
+    function setSignal(signal) {
+        signalDisplay.textContent = signal || 'WAITING';
+        signalDisplay.className = 'signal-value';
+
+        if (signal === 'BUY') signalDisplay.classList.add('signal-green');
+        else if (signal === 'SELL') signalDisplay.classList.add('signal-red');
+        else signalDisplay.classList.add('signal-neutral');
+    }
+
+    async function refreshBot() {
+        try {
+            const [status, history] = await Promise.all([
+                api('/api/status'),
+                api('/api/history?limit=100')
+            ]);
+
+            livePriceEl.textContent = Number(status.price).toFixed(2);
+            updateStrategy(status.strategyName);
+
+            const currentSignal =
+                status.latestSignal?.signal || 'WAITING';
+
+            setSignal(currentSignal);
+
+            renderCandles(status.candles || []);
+            renderHistory(history.signals || []);
+
+            winCountEl.textContent = history.wins || 0;
+            lossCountEl.textContent = history.losses || 0;
+
+            statusDot.className = 'status-dot active';
+            statusText.textContent = 'Active';
+        } catch (error) {
+            console.error(error);
+            statusDot.className = 'status-dot inactive';
+            statusText.textContent = 'Backend Error';
+        }
+    }
+
+    async function login() {
+        const username = loginUsername.value.trim();
+        const password = loginPassword.value;
+
+        if (!username || !password) {
+            loginError.textContent = 'Please enter both username and password.';
+            return;
+        }
+
+        try {
+            await api('/api/login', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+
+            loginError.textContent = '';
+            loginOverlay.classList.add('hidden');
+            mainApp.style.display = 'block';
+            displayUsername.textContent = username;
+
+            await refreshBot();
+        } catch (error) {
+            loginError.textContent = error.message || 'Login failed.';
+        }
+    }
+
+    async function logout() {
+        try {
+            await api('/api/logout', { method: 'POST' });
+        } catch (_) {}
+
+        mainApp.style.display = 'none';
+        loginOverlay.classList.remove('hidden');
+        loginPassword.value = '';
+    }
+
+    async function resetHistory() {
+        if (!confirm('Reset all stored trading history?')) return;
+
+        try {
+            await api('/api/admin/reset-history', {
+                method: 'POST'
+            });
+
+            await refreshBot();
+        } catch (error) {
+            alert(error.message || 'Reset failed.');
+        }
+    }
+
+    loginBtn.addEventListener('click', login);
+    loginPassword.addEventListener('keydown', e => {
+        if (e.key === 'Enter') login();
+    });
+    loginUsername.addEventListener('keydown', e => {
+        if (e.key === 'Enter') login();
+    });
+
+    logoutBtn.addEventListener('click', logout);
+
+    document.getElementById('resetHistoryBtn')
+        .addEventListener('click', resetHistory);
+
+    forgotLink.addEventListener('click', () => {
+        forgotModal.classList.add('active');
+        forgotError.textContent = '';
+        forgotSuccess.textContent = '';
+    });
+
+    resetCancelBtn.addEventListener('click', () => {
+        forgotModal.classList.remove('active');
+    });
+
+    resetConfirmBtn.addEventListener('click', async () => {
+        forgotError.textContent = '';
+        forgotSuccess.textContent = '';
+
+        const master = masterPassword.value;
+        const username = newUsername.value.trim();
+        const password = newPassword.value;
+
+        try {
+            await api('/api/admin/reset-credentials', {
+                method: 'POST',
+                body: JSON.stringify({
+                    masterPassword: master,
+                    username,
+                    password
+                })
+            });
+
+            forgotSuccess.textContent =
+                'Credentials reset successfully.';
+
+            loginUsername.value = username;
+            loginPassword.value = '';
+
+            setTimeout(() => {
+                forgotModal.classList.remove('active');
+            }, 1200);
+
+        } catch (error) {
+            forgotError.textContent =
+                error.message || 'Reset failed.';
+        }
+    });
+
+    clockTimer = setInterval(() => {
+        updateClock();
+        updateCountdown();
+    }, 1000);
+
+    updateClock();
+    updateCountdown();
+
+    /*
+       Do not run the bot in the browser.
+       Cloudflare Cron runs the signal engine.
+       This timer only refreshes the display.
+    */
+    refreshBot();
+    refreshTimer = setInterval(refreshBot, 15000);
+
+})();
+</script>
+
+</body>
+</html>
