@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  "name": "crypto-demo",
+
+  "main": "worker.js",
+
+  "compatibility_date": "2026-08-24",
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "crypto-demo-db",
+      "database_id": "bc8c95b3-3a45-4c84-ae68-c1dcee031c24"
+    }
+  ],
+
+  "triggers": {
+    "crons": [
+      "*/15 * * * *"
+    ]
+  }
+}
