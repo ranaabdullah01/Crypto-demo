@@ -50,11 +50,17 @@ function randomToken() {
 }
 
 function sessionCookie(token) {
-    return `session=${encodeURIComponent(token)}; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=86400`;
+    return (
+        `session=${encodeURIComponent(token)}; ` +
+        `HttpOnly; Secure; SameSite=None; Path=/; Max-Age=86400`
+    );
 }
 
 function clearSessionCookie() {
-    return "session=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0";
+    return (
+        "session=; HttpOnly; Secure; " +
+        "SameSite=None; Path=/; Max-Age=0"
+    );
 }
 
 /*
@@ -86,14 +92,16 @@ async function getBinanceCandles() {
     const data = await response.json();
 
     if (!Array.isArray(data) || data.length < 7) {
-        throw new Error("Invalid Binance candle response");
+        throw new Error(
+            "Invalid Binance candle response"
+        );
     }
 
     /*
-    Binance returns the currently forming candle
-    as the final candle.
+    Binance returns the current unfinished candle
+    as the final item.
 
-    We do NOT use that candle for signal generation.
+    We remove it and work only with closed candles.
     */
 
     const closedCandles = data.slice(0, -1);
@@ -139,7 +147,9 @@ async function getLivePrice() {
     const data = await response.json();
 
     if (!data.price) {
-        throw new Error("Invalid Binance price response");
+        throw new Error(
+            "Invalid Binance price response"
+        );
     }
 
     return Number(data.price);
@@ -150,36 +160,20 @@ async function getLivePrice() {
 STRATEGY
 ============================================================
 
-This preserves the strategy from the uploaded ETHUSD15.html.
-
 Strategy #01 — HYBRID
 
-red + red
-    SELL
-
-green + green
-    BUY
-
-red + green
-    SELL
-
-green + red
-    BUY
+red + red       => SELL
+green + green   => BUY
+red + green     => SELL
+green + red     => BUY
 
 
 Strategy #02 — TURBO
 
-red + red
-    BUY
-
-green + green
-    SELL
-
-red + green
-    BUY
-
-green + red
-    SELL
+red + red       => BUY
+green + green   => SELL
+red + green     => BUY
+green + red     => SELL
 ============================================================
 */
 
@@ -409,12 +403,11 @@ async function evaluatePreviousSignal(
     }
 
     /*
-    The original strategy represents:
-
     green = BUY
     red   = SELL
 
-    Therefore a matching candle color is a WIN.
+    Matching the predicted candle color
+    means WIN.
     */
 
     const isWin =
@@ -452,11 +445,7 @@ async function evaluatePreviousSignal(
             ) + 1;
 
         /*
-        Original behavior:
-
-        One consecutive loss
-        =>
-        switch strategy
+        Switch strategy after one loss.
         */
 
         if (
@@ -482,7 +471,6 @@ async function evaluatePreviousSignal(
         result,
         resultPrice:
             latestCandle.close,
-
         previousSignalId:
             previous.id
     };
@@ -512,8 +500,6 @@ async function processNewCandle(env) {
         await getBotState(env);
 
     /*
-    IMPORTANT:
-
     Never process the same closed candle twice.
     */
 
@@ -530,16 +516,12 @@ async function processNewCandle(env) {
             processed: false,
             reason:
                 "CANDLE_ALREADY_PROCESSED",
-
             state
         };
     }
 
     /*
-    --------------------------------------------------------
-    STEP 1
-    Evaluate previous signal
-    --------------------------------------------------------
+    Evaluate previous trade.
     */
 
     const evaluated =
@@ -550,10 +532,7 @@ async function processNewCandle(env) {
         );
 
     /*
-    --------------------------------------------------------
-    STEP 2
-    Generate new signal
-    --------------------------------------------------------
+    Generate new prediction.
     */
 
     const c1 =
@@ -575,9 +554,7 @@ async function processNewCandle(env) {
         latest.rawTime;
 
     /*
-    --------------------------------------------------------
-    No prediction
-    --------------------------------------------------------
+    No prediction.
     */
 
     if (!prediction) {
@@ -599,9 +576,7 @@ async function processNewCandle(env) {
     }
 
     /*
-    --------------------------------------------------------
-    Convert prediction to BUY / SELL
-    --------------------------------------------------------
+    Convert prediction to BUY / SELL.
     */
 
     const signal =
@@ -615,9 +590,7 @@ async function processNewCandle(env) {
         );
 
     /*
-    --------------------------------------------------------
-    Save signal
-    --------------------------------------------------------
+    Save signal.
     */
 
     await env.DB.prepare(`
@@ -673,20 +646,12 @@ async function processNewCandle(env) {
 
     return {
         processed: true,
-
         signal,
-
         strategy,
-
         strategyName:
-            strategyName(
-                strategy
-            ),
-
+            strategyName(strategy),
         evaluated,
-
         candle: latest,
-
         state
     };
 }
@@ -696,13 +661,13 @@ async function processNewCandle(env) {
 AUTHENTICATION
 ============================================================
 
-Set these as Cloudflare Worker Secrets:
+Create these Cloudflare Worker Secrets:
 
 BOT_USERNAME
 BOT_PASSWORD
 ADMIN_MASTER_PASSWORD
 
-Do NOT put these values in GitHub.
+Never put the actual values in GitHub.
 ============================================================
 */
 
@@ -770,16 +735,14 @@ async function login(
 
         return json({
             ok: false,
-
             error:
-                "BOT_USERNAME and BOT_PASSWORD are not configured in Worker Secrets."
+                "BOT_USERNAME and BOT_PASSWORD are not configured."
         }, 500, origin);
     }
 
     if (
         username !==
         env.BOT_USERNAME ||
-
         password !==
         env.BOT_PASSWORD
     ) {
@@ -827,11 +790,8 @@ async function login(
 
             headers: {
                 ...corsHeaders(origin),
-
                 "Set-Cookie":
-                    sessionCookie(
-                        token
-                    )
+                    sessionCookie(token)
             }
         }
     );
@@ -874,7 +834,6 @@ async function logout(
 
             headers: {
                 ...corsHeaders(origin),
-
                 "Set-Cookie":
                     clearSessionCookie()
             }
@@ -884,7 +843,7 @@ async function logout(
 
 /*
 ============================================================
-API
+API HANDLER
 ============================================================
 */
 
@@ -904,9 +863,7 @@ async function handleApi(
         );
 
     /*
-    --------------------------------------------------------
-    CORS preflight
-    --------------------------------------------------------
+    CORS preflight.
     */
 
     if (
@@ -917,7 +874,6 @@ async function handleApi(
             null,
             {
                 status: 204,
-
                 headers:
                     corsHeaders(
                         origin
@@ -927,9 +883,7 @@ async function handleApi(
     }
 
     /*
-    --------------------------------------------------------
     LOGIN
-    --------------------------------------------------------
     */
 
     if (
@@ -956,9 +910,7 @@ async function handleApi(
     }
 
     /*
-    --------------------------------------------------------
     LOGOUT
-    --------------------------------------------------------
     */
 
     if (
@@ -974,9 +926,7 @@ async function handleApi(
     }
 
     /*
-    --------------------------------------------------------
     STATUS
-    --------------------------------------------------------
     */
 
     if (
@@ -1072,9 +1022,7 @@ async function handleApi(
     }
 
     /*
-    --------------------------------------------------------
     HISTORY
-    --------------------------------------------------------
     */
 
     if (
@@ -1180,9 +1128,7 @@ async function handleApi(
     }
 
     /*
-    --------------------------------------------------------
     CANDLES
-    --------------------------------------------------------
     */
 
     if (
@@ -1217,9 +1163,7 @@ async function handleApi(
     }
 
     /*
-    --------------------------------------------------------
     MANUAL PROCESS
-    --------------------------------------------------------
     */
 
     if (
@@ -1271,9 +1215,7 @@ async function handleApi(
     }
 
     /*
-    --------------------------------------------------------
     RESET HISTORY
-    --------------------------------------------------------
     */
 
     if (
@@ -1312,25 +1254,14 @@ async function handleApi(
 
             await env.DB.prepare(`
                 UPDATE bot_state
-
                 SET
                     current_strategy = 1,
-
                     consecutive_losses = 0,
-
                     pending_trade = 0,
-
-                    last_trade_direction =
-                        NULL,
-
-                    last_prediction =
-                        NULL,
-
-                    last_closed_candle_time =
-                        NULL,
-
+                    last_trade_direction = NULL,
+                    last_prediction = NULL,
+                    last_closed_candle_time = NULL,
                     updated_at = ?
-
                 WHERE symbol = ?
                   AND timeframe = ?
             `)
@@ -1364,9 +1295,7 @@ async function handleApi(
     }
 
     /*
-    --------------------------------------------------------
-    UNKNOWN ENDPOINT
-    --------------------------------------------------------
+    Unknown endpoint.
     */
 
     return json({
@@ -1432,7 +1361,7 @@ export default {
             );
 
         /*
-        API requests
+        API routes are handled by Worker.
         */
 
         if (
@@ -1448,22 +1377,21 @@ export default {
         }
 
         /*
-        This Worker is the backend.
+        Everything else is served
+        from index.html / static assets.
 
-        The website can be hosted separately
-        by Cloudflare Pages/GitHub.
+        This requires:
+
+        "assets": {
+            "directory": ".",
+            "binding": "ASSETS"
+        }
+
+        in wrangler.jsonc.
         */
 
-        return new Response(
-            "Crypto Demo Worker is running.",
-            {
-                status: 200,
-
-                headers: {
-                    "Content-Type":
-                        "text/plain; charset=utf-8"
-                }
-            }
+        return env.ASSETS.fetch(
+            request
         );
     },
 
